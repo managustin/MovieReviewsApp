@@ -1,25 +1,19 @@
 import './App.css'
+import MovieCard from './components/MovieCard';
 
 function App() {
-  return (
-    /* el <> se llama fragmento y es para poder poner más de un elemento en el componente,
-    lo cual no se puede hacer*/
-    <> 
-      <div>
-      <p>Exploring components' concepts and how they're implemented.</p>
-      </div>
-      <Text display='Hello World'/>
-      <Text display="This is the same <Text> component using a different prop."/>
-    </>
-  )
-}
 
-function Text({display}){
+  const movieNumber = 1;
+
   return (
-    <div>
-      <p>{display}</p>
-    </div>
-  );
+    <>
+      {movieNumber === 1 ? (
+         <MovieCard movie={{title: "John Doe Film", release_date: "2025"}}/>
+        ) : (
+          <MovieCard movie={{title: "Random Film", release_date: "2025"}}/>
+        )}
+    </>
+  ); 
 }
 
 export default App

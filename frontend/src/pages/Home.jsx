@@ -1,44 +1,76 @@
-import MovieCard from "../components/MovieCard"
-import {useState} from "react"
-import "../css/Home.css"
+import MovieCard from "../components/MovieCard";
+import { useState, useEffect } from "react";
+import { searchMovies, getPopularMovies } from "../services/api";
+import "../css/Home.css";
 
 function Home() {
-    const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    const movies = [
-        {id: 1, title: "John Wick", release_date: '2020'},
-        {id: 2, title: "Terminator", release_date: '1980'},
-        {id: 3, title: "Matrix", release_date: '1999'}
-    ];
+  useEffect(() => {
+    const loadPopularMovies = async () => {
+      try {
+        const popularMovies = await getPopularMovies();
+        setMovies(popularMovies);
+      } catch (err) {
+        console.log(err);
+        setError("Failed to load movies...");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        alert(searchQuery)
+    loadPopularMovies();
+  }, []);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return
+    if (loading) return
+
+    setLoading(true)
+    try {
+        const searchResults = await searchMovies(searchQuery)
+        setMovies(searchResults)
+        setError(null)
+    } catch (err) {
+        console.log(err)
+        setError("Failed to search movies...")
+    } finally {
+        setLoading(false)
     }
-        
-    return <div className="home">
+  };
 
-        <form onSubmit={handleSearch} className="search-form">
-            <input 
-                type="text" 
-                placeholder="Search for movies..." 
-                className="search-input"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit" className="search-button">Search</button>
-        </form>
+  return (
+    <div className="home">
+      <form onSubmit={handleSearch} className="search-form">
+        <input
+          type="text"
+          placeholder="Search for movies..."
+          className="search-input"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <button type="submit" className="search-button">
+          Search
+        </button>
+      </form>
 
+        {error && <div className="error-message">{error}</div>}
+
+      {loading ? (
+        <div className="loading">Loading...</div>
+      ) : (//conditional rendering
         <div className="movies-grid">
-            {movies.map(movie => (                          // Using the .map method to iterate all of the values inside the array 
-                movie.title.toLowerCase().startsWith(searchQuery) && (  //conditional rendering
-                <MovieCard movie={movie} key={movie.id} />  // and pass them to the MovieCard function, reeturning the component for every movie.
-                // When dynamically rendering multiple things like wih .map, adding the 'key' property is needed,
-                // even when it's not added as a prop in MovieCard.jsx 
-                )
-            ))}                                             
+          {movies.map((movie) => (  // Using the .map method to iterate all of the values inside the array 
+            <MovieCard movie={movie} key={movie.id} />  // When dynamically rendering multiple things like wih .map, adding the 'key' property is needed,
+          ))}
         </div>
+      )}
     </div>
+  );
 }
 
-export default Home
+export default Home;
